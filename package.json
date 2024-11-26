@@ -1,6 +1,7 @@
 {
   "name": "@lyn/medusa-store-analytics",
   "version": "0.14.2",
+  "private": false,
   "description": "Get analytics data about your store",
   "author": "LyN Soluciones",
   "main": "dist/index.js",
