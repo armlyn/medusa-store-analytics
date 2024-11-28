@@ -61,7 +61,7 @@ const SalesDetails = ({orderStatuses, currencyCode, dateRange, dateRangeCompareT
   if (data.analytics == undefined) {
     return (
       <Grid item xs={12} md={12}> 
-        <Heading level="h3">Cannot get orders</Heading>
+        <Heading level="h3">No puedo obtener los pedidos</Heading>
       </Grid>
     )
   }
@@ -80,7 +80,7 @@ const SalesDetails = ({orderStatuses, currencyCode, dateRange, dateRangeCompareT
   } else {
     return (
       <Grid item xs={12} md={12}> 
-        <Heading level="h3">No orders</Heading>
+        <Heading level="h3">Sin pedidos</Heading>
       </Grid>
     )
   }
@@ -101,7 +101,7 @@ export const SalesOverviewCard = ({orderStatuses, dateRange, dateRangeCompareTo,
             </Grid>
             <Grid item>
               <Heading level="h2">
-                Total sales
+                Total de Ventas
               </Heading>
             </Grid>
             <Grid item>
@@ -112,7 +112,7 @@ export const SalesOverviewCard = ({orderStatuses, dateRange, dateRangeCompareTo,
                   </Select.Trigger>
                   <Select.Content>
                     {isLoading && <CircularProgress/>}
-                    {regions && !regions.length && <Text>No regions</Text>}
+                    {regions && !regions.length && <Text>Sin regiones</Text>}
                     {regions && regions.length > 0 && [...new Set(regions.map(region => region.currency_code))].map((currencyCode) => (
                       <Select.Item key={currencyCode} value={currencyCode}>
                         {currencyCode.toUpperCase()}
@@ -126,7 +126,7 @@ export const SalesOverviewCard = ({orderStatuses, dateRange, dateRangeCompareTo,
       </Grid>
       {value ? <SalesDetails orderStatuses={orderStatuses} currencyCode={value} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/> : 
         <Grid item>
-          <Heading level="h2">Please select a currency</Heading>
+          <Heading level="h2">Por favor seleccione una moneda</Heading>
         </Grid>
       }
     </Grid>

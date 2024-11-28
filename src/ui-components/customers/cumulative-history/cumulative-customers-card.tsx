@@ -27,7 +27,7 @@ export const CumulativeCustomersCard = ({dateRange, dateRangeCompareTo, compareE
             </Grid>
             <Grid item>
               <Heading level="h2">
-              Cumulative customers
+                Clientes acumuladas
               </Heading>
             </Grid>
           </Grid>

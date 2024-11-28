@@ -114,7 +114,7 @@ export const VariantsTopByCountCard = ({orderStatuses, dateRange, dateRangeCompa
             </Grid>
             <Grid item>
               <Heading level="h2">
-                Top variants
+                Principales variantes
               </Heading>
             </Grid>
           </Grid>

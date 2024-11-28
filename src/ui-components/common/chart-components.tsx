@@ -240,10 +240,10 @@ export const ChartCurrentPrevious = ({rawChartData, fromDate, toDate, fromCompar
       >
         <Grid container direction={'column'} justifyContent={'center'} alignItems={'center'}>
           <Grid item>
-            <Text>Chart can be shown only for the same length of ranges.</Text>
+            <Text>El gráfico se puede mostrar solo para rangos de la misma longitud.</Text>
           </Grid>
           <Grid item>
-            <Text>{`You are comparing ${currentPeriodInDays} days to ${precedingPeriodInDays} days`}</Text>
+            <Text>{`Estás comparando ${currentPeriodInDays} días con ${precedingPeriodInDays} días.`}</Text>
           </Grid>
         </Grid>
       </Box>

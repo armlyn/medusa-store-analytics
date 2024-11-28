@@ -92,13 +92,13 @@ const ProductsSoldCount = ({orderStatuses, dateRange, dateRangeCompareTo, compar
   }
 
   if (data.analytics == undefined || data.analytics.current == undefined) {
-    return <Heading level="h3">Cannot get orders or products</Heading>
+    return <Heading level="h3">No puedo obtener pedidos ni productos</Heading>
   }
 
   if (data.analytics.dateRangeFrom) {
     return <ProductsSoldCountNumbers current={data.analytics.current} previous={data.analytics.previous} compareEnabled={compareEnabled}/>
   } else {
-    return <Heading level="h3">No products for selected orders</Heading>
+    return <Heading level="h3">No hay productos para los pedidos seleccionados</Heading>
   }
 }
 
@@ -113,7 +113,7 @@ export const ProductsSoldCountCard = ({orderStatuses, dateRange, dateRangeCompar
             </Grid>
             <Grid item>
               <Heading level="h2">
-                Products sold
+                Productos vendidos
               </Heading>
             </Grid>
           </Grid>

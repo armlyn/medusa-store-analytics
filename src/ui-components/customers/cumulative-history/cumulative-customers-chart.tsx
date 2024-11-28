@@ -66,7 +66,7 @@ export const CumulativeCustomersChart = ({dateRange, dateRangeCompareTo, compare
   }
 
   if (data.analytics == undefined) {
-    return <Heading level="h3">Cannot get customers</Heading>
+    return <Heading level="h3">No puedo obtener clientes</Heading>
   }
 
   if (data.analytics.dateRangeFrom && data.analytics.dateRangeTo) {
@@ -99,6 +99,6 @@ export const CumulativeCustomersChart = ({dateRange, dateRangeCompareTo, compare
       </>
     )
   } else {
-    return <Heading level="h3">No customers</Heading>
+    return <Heading level="h3">Sin clientes</Heading>
   }
 }

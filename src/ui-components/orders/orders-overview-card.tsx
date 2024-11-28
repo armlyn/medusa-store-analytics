@@ -29,7 +29,7 @@ export const OrdersOverviewCard = ({orderStatuses, dateRange, dateRangeCompareTo
             </Grid>
             <Grid item>
               <Heading level="h2">
-                Orders
+                Pedidos
               </Heading>
             </Grid>
           </Grid>

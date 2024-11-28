@@ -28,7 +28,7 @@ export const CustomersOverviewCard = ({dateRange, dateRangeCompareTo, compareEna
             </Grid>
             <Grid item>
               <Heading level="h2">
-                New customers
+                Nuevos clientes
               </Heading>
             </Grid>
           </Grid>

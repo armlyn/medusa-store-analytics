@@ -27,7 +27,7 @@ import type { DateRange } from '..';
 
 const InfoBox = () => {
   return (
-    <Alert variant="info">Click on other tabs to see more statistics.</Alert>
+    <Alert variant="info">Haga clic en otras pestañas para ver más estadísticas.</Alert>
   )
 }
 
