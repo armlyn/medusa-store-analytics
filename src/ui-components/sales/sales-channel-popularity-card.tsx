@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -14,61 +14,81 @@ import { Heading, Alert } from "@medusajs/ui";
 import { ShoppingBag } from "@medusajs/icons";
 import { CircularProgress, Grid } from "@mui/material";
 import type { DateRange } from "../utils/types";
-import { useAdminCustomQuery } from "medusa-react"
-import { PopularityTable, PopularityTableRow } from "../common/popularity-table";
+import { useAdminCustomQuery } from "medusa-react";
+import {
+  PopularityTable,
+  PopularityTableRow,
+} from "../common/popularity-table";
 import { OrderStatus } from "../utils/types";
 
 type AdminSalesChannelStatisticsQuery = {
-  orderStatuses: string[],
-  dateRangeFrom: number
-  dateRangeTo: number,
-  dateRangeFromCompareTo?: number,
-  dateRangeToCompareTo?: number,
-}
+  orderStatuses: string[];
+  dateRangeFrom: number;
+  dateRangeTo: number;
+  dateRangeFromCompareTo?: number;
+  dateRangeToCompareTo?: number;
+};
 
 type OrdersSalesChannelPopularity = {
-  date: string,
-  orderCount: string,
-  salesChannelId: string
-  salesChannelName: string,
-}
+  date: string;
+  orderCount: string;
+  salesChannelId: string;
+  salesChannelName: string;
+};
 
 type OrdersSalesChannelPopularityResult = {
-  dateRangeFrom?: number
-  dateRangeTo?: number,
-  dateRangeFromCompareTo?: number,
-  dateRangeToCompareTo?: number,
-  current: OrdersSalesChannelPopularity[]
-  previous: OrdersSalesChannelPopularity[]
-}
+  dateRangeFrom?: number;
+  dateRangeTo?: number;
+  dateRangeFromCompareTo?: number;
+  dateRangeToCompareTo?: number;
+  current: OrdersSalesChannelPopularity[];
+  previous: OrdersSalesChannelPopularity[];
+};
 
 type OrdersSalesChannelPopularityResponse = {
-  analytics: OrdersSalesChannelPopularityResult
-}
+  analytics: OrdersSalesChannelPopularityResult;
+};
 
-function transformToPopularityTable(result: OrdersSalesChannelPopularityResult): PopularityTableRow[] {
+function transformToPopularityTable(
+  result: OrdersSalesChannelPopularityResult
+): PopularityTableRow[] {
   const currentMap = new Map<string, number>();
   const previousMap = new Map<string, number>();
 
-  result.current.forEach(currentItem => {
+  result.current.forEach((currentItem) => {
     const currentCount = currentMap.get(currentItem.salesChannelName) || 0;
-    currentMap.set(currentItem.salesChannelName, currentCount + parseInt(currentItem.orderCount));
+    currentMap.set(
+      currentItem.salesChannelName,
+      currentCount + parseInt(currentItem.orderCount)
+    );
   });
 
-  result.previous.forEach(previousItem => {
+  result.previous.forEach((previousItem) => {
     const previousCount = previousMap.get(previousItem.salesChannelName) || 0;
-    previousMap.set(previousItem.salesChannelName, previousCount + parseInt(previousItem.orderCount));
+    previousMap.set(
+      previousItem.salesChannelName,
+      previousCount + parseInt(previousItem.orderCount)
+    );
   });
 
-  return Array.from(currentMap.keys()).map(name => ({
+  return Array.from(currentMap.keys()).map((name) => ({
     name,
     current: String(currentMap.get(name) || 0),
-    previous: String(previousMap.get(name) || 0)
+    previous: String(previousMap.get(name) || 0),
   }));
 }
 
-const SalesChannelsPopularityDetails = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabled} : {
-  orderStatuses: OrderStatus[], dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled?: boolean}) => {
+const SalesChannelsPopularityDetails = ({
+  orderStatuses,
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  orderStatuses: OrderStatus[];
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled?: boolean;
+}) => {
   const { data, isLoading, isError, error } = useAdminCustomQuery<
     AdminSalesChannelStatisticsQuery,
     OrdersSalesChannelPopularityResponse
@@ -79,51 +99,73 @@ const SalesChannelsPopularityDetails = ({orderStatuses, dateRange, dateRangeComp
       orderStatuses: Object.values(orderStatuses),
       dateRangeFrom: dateRange ? dateRange.from.getTime() : undefined,
       dateRangeTo: dateRange ? dateRange.to.getTime() : undefined,
-      dateRangeFromCompareTo: dateRangeCompareTo ? dateRangeCompareTo.from.getTime() : undefined,
-      dateRangeToCompareTo: dateRangeCompareTo ? dateRangeCompareTo.to.getTime() : undefined,
+      dateRangeFromCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.from.getTime()
+        : undefined,
+      dateRangeToCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.to.getTime()
+        : undefined,
     }
-  )
+  );
 
   if (isLoading) {
-    return <CircularProgress size={12}/>
+    return <CircularProgress size={12} />;
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
-    return <Alert variant="error">{errorText}</Alert>
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
+    return <Alert variant="error">{errorText}</Alert>;
   }
 
   if (data.analytics == undefined) {
-    return <Heading level="h3">Cannot get orders</Heading>
+    return <Heading level="h3">No puedo recibir pedidos</Heading>;
   }
 
   if (data.analytics.dateRangeFrom) {
-    return <PopularityTable valueColumnName="Orders" tableRows={transformToPopularityTable(data.analytics)} enableComparing={compareEnabled && dateRangeCompareTo !== undefined}/>
+    return (
+      <PopularityTable
+        valueColumnName="Pedidos"
+        tableRows={transformToPopularityTable(data.analytics)}
+        enableComparing={compareEnabled && dateRangeCompareTo !== undefined}
+      />
+    );
   } else {
-    return <Heading level="h3">No orders</Heading>
+    return <Heading level="h3">No hay pedidos</Heading>;
   }
-}
+};
 
-export const SalesChannelPopularityCard = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabled} :
-  {orderStatuses: OrderStatus[], dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled: boolean}) => {
+export const SalesChannelPopularityCard = ({
+  orderStatuses,
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  orderStatuses: OrderStatus[];
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled: boolean;
+}) => {
   return (
     <Grid container paddingBottom={2} spacing={3}>
       <Grid item xs={12} md={12}>
-          <Grid container spacing={2}>
-            <Grid item>
-              <ShoppingBag/>
-            </Grid>
-            <Grid item>
-              <Heading level="h2">
-                Sales channel popularity
-              </Heading>
-            </Grid>
+        <Grid container spacing={2}>
+          <Grid item>
+            <ShoppingBag />
           </Grid>
+          <Grid item>
+            <Heading level="h2">Popularidad del canal de ventas</Heading>
+          </Grid>
+        </Grid>
       </Grid>
       <Grid item xs={12} md={12}>
-        <SalesChannelsPopularityDetails orderStatuses={orderStatuses} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
+        <SalesChannelsPopularityDetails
+          orderStatuses={orderStatuses}
+          dateRange={dateRange}
+          dateRangeCompareTo={dateRangeCompareTo}
+          compareEnabled={compareEnabled}
+        />
       </Grid>
     </Grid>
-  )
-}
+  );
+};

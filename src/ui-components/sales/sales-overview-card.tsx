@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -15,23 +15,34 @@ import { CurrencyDollar } from "@medusajs/icons";
 import { CircularProgress, Grid } from "@mui/material";
 import type { DateRange, OrderStatus } from "../utils/types";
 import { SalesNumber } from "./sales-number-overview";
-import { useState } from 'react';
-import { useAdminRegions } from "medusa-react"
+import { useState } from "react";
+import { useAdminRegions } from "medusa-react";
 import { SalesByNewChart } from "./sales-total-chart";
-import { useAdminCustomQuery } from "medusa-react"
+import { useAdminCustomQuery } from "medusa-react";
 import { SalesHistoryResponse } from "./types";
 
 type AdminSalesStatisticsQuery = {
-  orderStatuses: string[],
-  currencyCode: string,
-  dateRangeFrom?: number
-  dateRangeTo?: number,
-  dateRangeFromCompareTo?: number,
-  dateRangeToCompareTo?: number,
-}
+  orderStatuses: string[];
+  currencyCode: string;
+  dateRangeFrom?: number;
+  dateRangeTo?: number;
+  dateRangeFromCompareTo?: number;
+  dateRangeToCompareTo?: number;
+};
 
-const SalesDetails = ({orderStatuses, currencyCode, dateRange, dateRangeCompareTo, compareEnabled} : 
-  {orderStatuses: OrderStatus[], currencyCode: string, dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled?: boolean}) => {
+const SalesDetails = ({
+  orderStatuses,
+  currencyCode,
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  orderStatuses: OrderStatus[];
+  currencyCode: string;
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled?: boolean;
+}) => {
   const { data, isLoading, isError, error } = useAdminCustomQuery<
     AdminSalesStatisticsQuery,
     SalesHistoryResponse
@@ -42,93 +53,121 @@ const SalesDetails = ({orderStatuses, currencyCode, dateRange, dateRangeCompareT
       orderStatuses: Object.values(orderStatuses),
       dateRangeFrom: dateRange ? dateRange.from.getTime() : undefined,
       dateRangeTo: dateRange ? dateRange.to.getTime() : undefined,
-      dateRangeFromCompareTo: dateRangeCompareTo ? dateRangeCompareTo.from.getTime() : undefined,
-      dateRangeToCompareTo: dateRangeCompareTo ? dateRangeCompareTo.to.getTime() : undefined,
-      currencyCode: currencyCode
+      dateRangeFromCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.from.getTime()
+        : undefined,
+      dateRangeToCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.to.getTime()
+        : undefined,
+      currencyCode: currencyCode,
     }
-  )
+  );
 
   if (isLoading) {
-    return <CircularProgress size={12}/>
+    return <CircularProgress size={12} />;
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
-    return <Alert variant="error">{errorText}</Alert>
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
+    return <Alert variant="error">{errorText}</Alert>;
   }
 
   if (data.analytics == undefined) {
     return (
-      <Grid item xs={12} md={12}> 
+      <Grid item xs={12} md={12}>
         <Heading level="h3">No puedo obtener los pedidos</Heading>
       </Grid>
-    )
+    );
   }
 
   if (data.analytics.dateRangeFrom) {
     return (
       <>
         <Grid item xs={12} md={12}>
-          <SalesNumber salesHistoryResponse={data} compareEnabled={compareEnabled}/>
+          <SalesNumber
+            salesHistoryResponse={data}
+            compareEnabled={compareEnabled}
+          />
         </Grid>
         <Grid item xs={12} md={12}>
-          <SalesByNewChart salesHistoryResponse={data} compareEnabled={compareEnabled}/> 
+          <SalesByNewChart
+            salesHistoryResponse={data}
+            compareEnabled={compareEnabled}
+          />
         </Grid>
       </>
-    )
+    );
   } else {
     return (
-      <Grid item xs={12} md={12}> 
+      <Grid item xs={12} md={12}>
         <Heading level="h3">Sin pedidos</Heading>
       </Grid>
-    )
+    );
   }
-}
+};
 
-export const SalesOverviewCard = ({orderStatuses, dateRange, dateRangeCompareTo, compareEnabled} : 
-  {orderStatuses: OrderStatus[], dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled: boolean}) => {
-
+export const SalesOverviewCard = ({
+  orderStatuses,
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  orderStatuses: OrderStatus[];
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled: boolean;
+}) => {
   const { regions, isLoading } = useAdminRegions();
-  const [ value , setValue ] = useState<string | undefined>();
-  
+  const [value, setValue] = useState<string | undefined>();
+
   return (
     <Grid container paddingBottom={2} spacing={3}>
       <Grid item xs={12} md={12}>
-          <Grid container spacing={2} alignItems='center'>
-            <Grid item>
-              <CurrencyDollar/>
-            </Grid>
-            <Grid item>
-              <Heading level="h2">
-                Total de Ventas
-              </Heading>
-            </Grid>
-            <Grid item>
-              <div className="w-[256px]">
-                <Select size="small" onValueChange={setValue} value={value}>
-                  <Select.Trigger>
-                    <Select.Value placeholder="Select a currency" />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {isLoading && <CircularProgress/>}
-                    {regions && !regions.length && <Text>Sin regiones</Text>}
-                    {regions && regions.length > 0 && [...new Set(regions.map(region => region.currency_code))].map((currencyCode) => (
+        <Grid container spacing={2} alignItems="center">
+          <Grid item>
+            <CurrencyDollar />
+          </Grid>
+          <Grid item>
+            <Heading level="h2">Total de Ventas</Heading>
+          </Grid>
+          <Grid item>
+            <div className="w-[256px]">
+              <Select size="small" onValueChange={setValue} value={value}>
+                <Select.Trigger>
+                  <Select.Value placeholder="Seleccione una moneda" />
+                </Select.Trigger>
+                <Select.Content>
+                  {isLoading && <CircularProgress />}
+                  {regions && !regions.length && <Text>Sin regiones</Text>}
+                  {regions &&
+                    regions.length > 0 &&
+                    [
+                      ...new Set(regions.map((region) => region.currency_code)),
+                    ].map((currencyCode) => (
                       <Select.Item key={currencyCode} value={currencyCode}>
                         {currencyCode.toUpperCase()}
                       </Select.Item>
                     ))}
-                  </Select.Content>
-                </Select>
-              </div>
-            </Grid>
+                </Select.Content>
+              </Select>
+            </div>
           </Grid>
+        </Grid>
       </Grid>
-      {value ? <SalesDetails orderStatuses={orderStatuses} currencyCode={value} dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/> : 
+      {value ? (
+        <SalesDetails
+          orderStatuses={orderStatuses}
+          currencyCode={value}
+          dateRange={dateRange}
+          dateRangeCompareTo={dateRangeCompareTo}
+          compareEnabled={compareEnabled}
+        />
+      ) : (
         <Grid item>
           <Heading level="h2">Por favor seleccione una moneda</Heading>
         </Grid>
-      }
+      )}
     </Grid>
-  )
-}
+  );
+};

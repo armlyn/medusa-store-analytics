@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -17,56 +17,90 @@ import { Text, Container } from "@medusajs/ui";
 
 function convertToChartData(ordersPaymentProviders: OrdersPaymentProvider[]) {
   if (ordersPaymentProviders.length) {
-    return ordersPaymentProviders.map(ordersPaymentProvider => {
+    return ordersPaymentProviders.map((ordersPaymentProvider) => {
       return {
         name: ordersPaymentProvider.paymentProviderId,
         value: parseFloat(ordersPaymentProvider.percentage),
         displayValue: ordersPaymentProvider.paymentProviderId,
         orderCount: ordersPaymentProvider.orderCount,
-      }
-    })
+      };
+    });
   }
   return undefined;
 }
 const ChartCustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-        <Container>
-          <Text>{`${payload[0].payload.value}%`}</Text>
-          <Text>{`Provider: ${payload[0].payload.name}`}</Text>
-          <Text>{`Order count: ${payload[0].payload.orderCount}`}</Text>
-        </Container>
-      )
+      <Container>
+        <Text>{`${payload[0].payload.value}%`}</Text>
+        <Text>{`Proveedor: ${payload[0].payload.name}`}</Text>
+        <Text>{`Número de pedidos: ${payload[0].payload.orderCount}`}</Text>
+      </Container>
+    );
   }
   return null;
 };
 
-export const OrdersPaymentProviderPieChart = ({ordersPaymentProviderResponse, compareEnabled} : {ordersPaymentProviderResponse: OrdersPaymentProviderResponse, compareEnabled?: boolean}) => {
+export const OrdersPaymentProviderPieChart = ({
+  ordersPaymentProviderResponse,
+  compareEnabled,
+}: {
+  ordersPaymentProviderResponse: OrdersPaymentProviderResponse;
+  compareEnabled?: boolean;
+}) => {
+  const currentData = convertToChartData(
+    ordersPaymentProviderResponse.analytics.current
+  );
+  const previousData = convertToChartData(
+    ordersPaymentProviderResponse.analytics.previous
+  );
 
-  const currentData = convertToChartData(ordersPaymentProviderResponse.analytics.current);
-  const previousData = convertToChartData(ordersPaymentProviderResponse.analytics.previous);
-
-  const renderLabel = function(entry) {
+  const renderLabel = function (entry) {
     return entry.displayValue;
-  }
+  };
 
   return (
     <PieChart width={500} height={300}>
-      <Pie data={currentData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={90} fill="#82ca9d" label={renderLabel} />
-      {compareEnabled && ordersPaymentProviderResponse.analytics.dateRangeFromCompareTo  &&
-        <Pie data={previousData} dataKey="value" cx="50%" cy="50%" outerRadius={30} fill="#8884d8"/>
-      }
-      {(compareEnabled && ordersPaymentProviderResponse.analytics.dateRangeFromCompareTo) && <Legend payload={[
-        {
-          value: getLegendName(true),
-          color: "#82ca9d"
-        },
-        {
-          value: getLegendName(false),
-          color: "#8884d8"
-        }
-      ]} iconType="circle"/>}
-      <Tooltip content={<ChartCustomTooltip active={false} payload={[]} label={""}/>} />
+      <Pie
+        data={currentData}
+        dataKey="value"
+        cx="50%"
+        cy="50%"
+        innerRadius={40}
+        outerRadius={90}
+        fill="#82ca9d"
+        label={renderLabel}
+      />
+      {compareEnabled &&
+        ordersPaymentProviderResponse.analytics.dateRangeFromCompareTo && (
+          <Pie
+            data={previousData}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            outerRadius={30}
+            fill="#8884d8"
+          />
+        )}
+      {compareEnabled &&
+        ordersPaymentProviderResponse.analytics.dateRangeFromCompareTo && (
+          <Legend
+            payload={[
+              {
+                value: getLegendName(true),
+                color: "#82ca9d",
+              },
+              {
+                value: getLegendName(false),
+                color: "#8884d8",
+              },
+            ]}
+            iconType="circle"
+          />
+        )}
+      <Tooltip
+        content={<ChartCustomTooltip active={false} payload={[]} label={""} />}
+      />
     </PieChart>
   );
-}
+};

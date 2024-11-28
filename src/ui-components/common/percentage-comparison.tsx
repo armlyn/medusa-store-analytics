@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -13,15 +13,35 @@
 import { Heading, Tooltip } from "@medusajs/ui";
 import { calculatePercentage } from "../utils/helpers";
 
-export const PercentageComparison = ({current, label, previous, headingLevel = "h2" } : {current: string, label: string, previous: string, headingLevel?: any}) => {
-  const percentage: number | undefined = calculatePercentage(parseInt(current), parseInt(previous));
+export const PercentageComparison = ({
+  current,
+  label,
+  previous,
+  headingLevel = "h2",
+}: {
+  current: string;
+  label: string;
+  previous: string;
+  headingLevel?: any;
+}) => {
+  const percentage: number | undefined = calculatePercentage(
+    parseInt(current),
+    parseInt(previous)
+  );
   return (
-    <Tooltip content={`Previously: ${previous} ${label}`}>
+    <Tooltip content={`Previamente: ${previous} ${label}`}>
       <span>
-          <Heading level={headingLevel} style={ { textDecorationStyle: 'dotted', textDecorationLine: 'underline', textUnderlineOffset: '3px'}}>
-            {percentage !== undefined ? `${percentage}%` : `N/A`}
-          </Heading>
+        <Heading
+          level={headingLevel}
+          style={{
+            textDecorationStyle: "dotted",
+            textDecorationLine: "underline",
+            textUnderlineOffset: "3px",
+          }}
+        >
+          {percentage !== undefined ? `${percentage}%` : `N/A`}
+        </Heading>
       </span>
     </Tooltip>
-  )
-}
+  );
+};

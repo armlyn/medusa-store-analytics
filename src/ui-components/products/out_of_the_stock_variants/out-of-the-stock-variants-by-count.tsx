@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -13,75 +13,75 @@
 import { Heading, Alert, Tooltip, Badge } from "@medusajs/ui";
 import { ArrowRightOnRectangle, InformationCircle } from "@medusajs/icons";
 import { CircularProgress, Grid } from "@mui/material";
-import { useAdminCustomQuery } from "medusa-react"
+import { useAdminCustomQuery } from "medusa-react";
 import { OutOfTheStockVariantsTable } from "./out-of-the-stock-variants-table";
 import { OutOfTheStockVariantsModal } from "./out-of-the-stock-variants-all";
-import { AdminOutOfTheStockVariantsStatisticsQuery, OutOfTheStockVariantsCountResponse, transformToVariantTopTable } from "./helpers";
+import {
+  AdminOutOfTheStockVariantsStatisticsQuery,
+  OutOfTheStockVariantsCountResponse,
+  transformToVariantTopTable,
+} from "./helpers";
 
 const OutOfTheStockVariants = () => {
   const { data, isError, isLoading, error } = useAdminCustomQuery<
     AdminOutOfTheStockVariantsStatisticsQuery,
     OutOfTheStockVariantsCountResponse
-  >(
-    `/products-analytics/out-of-the-stock-variants`,
-    [],
-    {
-      limit: 5
-    }
-  )
+  >(`/products-analytics/out-of-the-stock-variants`, [], {
+    limit: 5,
+  });
 
   if (isLoading) {
-    return <CircularProgress size={12}/>
+    return <CircularProgress size={12} />;
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
-    return <Alert variant="error">{errorText}</Alert>
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
+    return <Alert variant="error">{errorText}</Alert>;
   }
 
   if (data.analytics == undefined) {
-    return <Heading level="h3">Cannot get variants</Heading>
+    return <Heading level="h3">No se pueden obtener variantes</Heading>;
   }
 
-  return <OutOfTheStockVariantsTable tableRows={transformToVariantTopTable(data.analytics)}/>
-}
+  return (
+    <OutOfTheStockVariantsTable
+      tableRows={transformToVariantTopTable(data.analytics)}
+    />
+  );
+};
 
 export const OutOfTheStockVariantsCard = () => {
   return (
     <Grid container paddingBottom={2} spacing={3}>
       <Grid item xs={12} md={12}>
-          <Grid container spacing={2} alignItems={'center'}>
-            <Grid item>
-              <ArrowRightOnRectangle/>
-            </Grid>
-            <Grid item>
-              <Heading level="h2">
-                Out of the stock variants
-              </Heading>
-            </Grid>
-            <Grid item>
-              <Tooltip content='It includes only published products and not gift cards'>
-                <InformationCircle />
-              </Tooltip>
-            </Grid>
-          </Grid>
-      </Grid>
-      <Grid item xs={12} md={12}>
-        <Grid container direction="row" spacing={2} alignItems="center">
+        <Grid container spacing={2} alignItems={"center"}>
           <Grid item>
-            <Heading level="h3">
-              Last 5 variants
-            </Heading>
+            <ArrowRightOnRectangle />
           </Grid>
           <Grid item>
-            <OutOfTheStockVariantsModal/>
+            <Heading level="h2">Variantes fuera de stock</Heading>
+          </Grid>
+          <Grid item>
+            <Tooltip content="Incluye solo productos publicados y no tarjetas de regalo.">
+              <InformationCircle />
+            </Tooltip>
           </Grid>
         </Grid>
       </Grid>
       <Grid item xs={12} md={12}>
-        <OutOfTheStockVariants/>
+        <Grid container direction="row" spacing={2} alignItems="center">
+          <Grid item>
+            <Heading level="h3">Últimas 5 variantes</Heading>
+          </Grid>
+          <Grid item>
+            <OutOfTheStockVariantsModal />
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item xs={12} md={12}>
+        <OutOfTheStockVariants />
       </Grid>
     </Grid>
-  )
-}
+  );
+};

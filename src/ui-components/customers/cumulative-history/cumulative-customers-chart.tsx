@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -10,37 +10,44 @@
  * limitations under the License.
  */
 
-import { useAdminCustomQuery } from "medusa-react"
+import { useAdminCustomQuery } from "medusa-react";
 import { Heading, Alert } from "@medusajs/ui";
 import { CircularProgress } from "@mui/material";
 import type { DateRange } from "../../utils/types";
 import { ChartCurrentPrevious } from "../../common/chart-components";
 
 type AdminCustomersStatisticsQuery = {
-  dateRangeFrom?: number
-  dateRangeTo?: number,
-  dateRangeFromCompareTo?: number,
-  dateRangeToCompareTo?: number,
-}
+  dateRangeFrom?: number;
+  dateRangeTo?: number;
+  dateRangeFromCompareTo?: number;
+  dateRangeToCompareTo?: number;
+};
 
 type CustomersHistory = {
-  customerCount: string,
-  date: string
-}
+  customerCount: string;
+  date: string;
+};
 
 type CustomersHistoryResponse = {
   analytics: {
-    dateRangeFrom?: number
-    dateRangeTo?: number,
-    dateRangeFromCompareTo?: number,
-    dateRangeToCompareTo?: number,
+    dateRangeFrom?: number;
+    dateRangeTo?: number;
+    dateRangeFromCompareTo?: number;
+    dateRangeToCompareTo?: number;
     current: CustomersHistory[];
     previous: CustomersHistory[];
-  }
-}
+  };
+};
 
-export const CumulativeCustomersChart = ({dateRange, dateRangeCompareTo, compareEnabled} : {dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled?: boolean}) => {
-
+export const CumulativeCustomersChart = ({
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled?: boolean;
+}) => {
   const { data, isLoading, isError, error } = useAdminCustomQuery<
     AdminCustomersStatisticsQuery,
     CustomersHistoryResponse
@@ -50,55 +57,67 @@ export const CumulativeCustomersChart = ({dateRange, dateRangeCompareTo, compare
     {
       dateRangeFrom: dateRange ? dateRange.from.getTime() : undefined,
       dateRangeTo: dateRange ? dateRange.to.getTime() : undefined,
-      dateRangeFromCompareTo: dateRangeCompareTo ? dateRangeCompareTo.from.getTime() : undefined,
-      dateRangeToCompareTo: dateRangeCompareTo ? dateRangeCompareTo.to.getTime() : undefined
+      dateRangeFromCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.from.getTime()
+        : undefined,
+      dateRangeToCompareTo: dateRangeCompareTo
+        ? dateRangeCompareTo.to.getTime()
+        : undefined,
     }
-  )
+  );
 
   if (isLoading) {
-    return <CircularProgress size={12}/>
+    return <CircularProgress size={12} />;
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
-    return <Alert variant="error">{errorText}</Alert>
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
+    return <Alert variant="error">{errorText}</Alert>;
   }
 
   if (data.analytics == undefined) {
-    return <Heading level="h3">No puedo obtener clientes</Heading>
+    return <Heading level="h3">No puedo obtener clientes</Heading>;
   }
 
   if (data.analytics.dateRangeFrom && data.analytics.dateRangeTo) {
     const rawChartData = {
-      current: data.analytics.current.map(currentData => {
+      current: data.analytics.current.map((currentData) => {
         return {
           date: new Date(currentData.date),
-          value: currentData.customerCount
+          value: currentData.customerCount,
         };
       }),
-      previous: data.analytics.previous.map(previousData => {
+      previous: data.analytics.previous.map((previousData) => {
         return {
           date: new Date(previousData.date),
-          value: previousData.customerCount
+          value: previousData.customerCount,
         };
       }),
     };
     return (
       <>
-        <Heading level="h3">Cumulative customers by time</Heading>
-        <ChartCurrentPrevious 
-          rawChartData={rawChartData} 
-          fromDate={new Date(data.analytics.dateRangeFrom)} 
+        <Heading level="h3">Clientes acumulados por tiempo</Heading>
+        <ChartCurrentPrevious
+          rawChartData={rawChartData}
+          fromDate={new Date(data.analytics.dateRangeFrom)}
           toDate={new Date(data.analytics.dateRangeTo)}
-          fromCompareDate={data.analytics.dateRangeFromCompareTo ? new Date(data.analytics.dateRangeFromCompareTo) : undefined}
-          toCompareDate={data.analytics.dateRangeToCompareTo ? new Date(data.analytics.dateRangeToCompareTo) : undefined}
+          fromCompareDate={
+            data.analytics.dateRangeFromCompareTo
+              ? new Date(data.analytics.dateRangeFromCompareTo)
+              : undefined
+          }
+          toCompareDate={
+            data.analytics.dateRangeToCompareTo
+              ? new Date(data.analytics.dateRangeToCompareTo)
+              : undefined
+          }
           compareEnabled={compareEnabled}
           connectEmptyPointsUsingPreviousValue={true}
         />
       </>
-    )
+    );
   } else {
-    return <Heading level="h3">Sin clientes</Heading>
+    return <Heading level="h3">Sin clientes</Heading>;
   }
-}
+};

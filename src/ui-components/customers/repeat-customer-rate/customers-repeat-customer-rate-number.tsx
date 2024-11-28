@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -14,40 +14,64 @@ import { Heading } from "@medusajs/ui";
 import { Grid } from "@mui/material";
 import { PercentageComparison } from "../../common/percentage-comparison";
 import { IconComparison } from "../../common/icon-comparison";
-import { CustomersRepeatCustomerRateResponse } from "../types"
+import { CustomersRepeatCustomerRateResponse } from "../types";
 
-export const RepeatCustomerRateNummber = ({repeatCustomerRateResponse, compareEnabled} : {repeatCustomerRateResponse: CustomersRepeatCustomerRateResponse, compareEnabled?: boolean}) => {
-  const currentPercentage: number | undefined =  
-    repeatCustomerRateResponse.analytics.current !== undefined &&  repeatCustomerRateResponse.analytics.current.returnCustomerRate !== undefined ? 
-      parseInt(repeatCustomerRateResponse.analytics.current.returnCustomerRate) : undefined;
-  const previousPercentage: number | undefined = 
-    repeatCustomerRateResponse.analytics.previous !== undefined && repeatCustomerRateResponse.analytics.previous.returnCustomerRate !== undefined ? 
-      parseInt(repeatCustomerRateResponse.analytics.previous.returnCustomerRate) : undefined;
+export const RepeatCustomerRateNummber = ({
+  repeatCustomerRateResponse,
+  compareEnabled,
+}: {
+  repeatCustomerRateResponse: CustomersRepeatCustomerRateResponse;
+  compareEnabled?: boolean;
+}) => {
+  const currentPercentage: number | undefined =
+    repeatCustomerRateResponse.analytics.current !== undefined &&
+    repeatCustomerRateResponse.analytics.current.returnCustomerRate !==
+      undefined
+      ? parseInt(
+          repeatCustomerRateResponse.analytics.current.returnCustomerRate
+        )
+      : undefined;
+  const previousPercentage: number | undefined =
+    repeatCustomerRateResponse.analytics.previous !== undefined &&
+    repeatCustomerRateResponse.analytics.previous.returnCustomerRate !==
+      undefined
+      ? parseInt(
+          repeatCustomerRateResponse.analytics.previous.returnCustomerRate
+        )
+      : undefined;
 
   return (
-    <Grid container alignItems={'center'} spacing={2}>
+    <Grid container alignItems={"center"} spacing={2}>
       <Grid item>
-        {currentPercentage !== undefined ? 
-          <Heading level="h1">
-            {`${currentPercentage}%`}
-          </Heading> :
-          <Heading level="h3">
-            {`No orders or customers`}
-          </Heading>
-      }
+        {currentPercentage !== undefined ? (
+          <Heading level="h1">{`${currentPercentage}%`}</Heading>
+        ) : (
+          <Heading level="h3">{`No hay pedidos ni clientes`}</Heading>
+        )}
       </Grid>
-      {compareEnabled && repeatCustomerRateResponse.analytics.dateRangeFromCompareTo && currentPercentage !== undefined &&
-      <Grid item>
-        <Grid container alignItems={'center'}>
+      {compareEnabled &&
+        repeatCustomerRateResponse.analytics.dateRangeFromCompareTo &&
+        currentPercentage !== undefined && (
           <Grid item>
-            <IconComparison current={currentPercentage} previous={previousPercentage ? previousPercentage : undefined}/>
+            <Grid container alignItems={"center"}>
+              <Grid item>
+                <IconComparison
+                  current={currentPercentage}
+                  previous={previousPercentage ? previousPercentage : undefined}
+                />
+              </Grid>
+              {previousPercentage !== undefined && (
+                <Grid item>
+                  <PercentageComparison
+                    current={currentPercentage.toString()}
+                    previous={previousPercentage.toString()}
+                    label="%"
+                  />
+                </Grid>
+              )}
+            </Grid>
           </Grid>
-          {previousPercentage !== undefined && <Grid item>
-            <PercentageComparison current={currentPercentage.toString()} previous={previousPercentage.toString()} label="%"/>
-          </Grid>}
-        </Grid>
-      </Grid>
-      }
+        )}
     </Grid>
   );
-}
+};

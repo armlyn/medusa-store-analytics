@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -12,20 +12,27 @@
 
 import { Heading } from "@medusajs/ui";
 import { Grid } from "@mui/material";
-import { CustomersRepeatCustomerRateResponse } from "../types"
+import { CustomersRepeatCustomerRateResponse } from "../types";
 import { OrderFrequencyDistributionPieChart } from "./order-frequency-distribution-chart";
 
-export const OrderFrequencyDistribution = ({repeatCustomerRateResponse, compareEnabled} : {repeatCustomerRateResponse: CustomersRepeatCustomerRateResponse, compareEnabled?: boolean}) => {
+export const OrderFrequencyDistribution = ({
+  repeatCustomerRateResponse,
+  compareEnabled,
+}: {
+  repeatCustomerRateResponse: CustomersRepeatCustomerRateResponse;
+  compareEnabled?: boolean;
+}) => {
   return (
-    <Grid container direction={'column'} alignItems={'center'} paddingTop={3}>
+    <Grid container direction={"column"} alignItems={"center"} paddingTop={3}>
       <Grid item>
-        <Heading level="h3">
-          How orders were distributed?
-        </Heading>
+        <Heading level="h3">¿Cómo se distribuyeron los pedidos?</Heading>
       </Grid>
       <Grid item>
-        <OrderFrequencyDistributionPieChart repeatCustomerRateResponse={repeatCustomerRateResponse} compareEnabled={compareEnabled}/>
+        <OrderFrequencyDistributionPieChart
+          repeatCustomerRateResponse={repeatCustomerRateResponse}
+          compareEnabled={compareEnabled}
+        />
       </Grid>
     </Grid>
-  )
-}
+  );
+};

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -10,51 +10,60 @@
  * limitations under the License.
  */
 
-import { Heading, Text, FocusModal, Button, Alert } from "@medusajs/ui"
+import { Heading, Text, FocusModal, Button, Alert } from "@medusajs/ui";
 import { CircularProgress, Grid, Box } from "@mui/material";
-import { useAdminCustomQuery } from "medusa-react"
+import { useAdminCustomQuery } from "medusa-react";
 import { useState } from "react";
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
 
-import { Table } from "@medusajs/ui"
-import { useMemo } from "react"
-import { AdminOutOfTheStockVariantsStatisticsQuery, OutOfTheStockVariantsCountResponse, OutOfTheStockVariantsTableRow, transformToVariantTopTable } from "./helpers";
+import { Table } from "@medusajs/ui";
+import { useMemo } from "react";
+import {
+  AdminOutOfTheStockVariantsStatisticsQuery,
+  OutOfTheStockVariantsCountResponse,
+  OutOfTheStockVariantsTableRow,
+  transformToVariantTopTable,
+} from "./helpers";
 
-function TablePaginated({variants} : {variants: OutOfTheStockVariantsTableRow[]}) {
-  const [currentPage, setCurrentPage] = useState(0)
+function TablePaginated({
+  variants,
+}: {
+  variants: OutOfTheStockVariantsTableRow[];
+}) {
+  const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 5;
-  const pageCount = Math.ceil(variants.length / pageSize)
+  const pageCount = Math.ceil(variants.length / pageSize);
   const canNextPage = useMemo(
     () => currentPage < pageCount - 1,
     [currentPage, pageCount]
-  )
-  const canPreviousPage = useMemo(() => currentPage - 1 >= 0, [currentPage])
+  );
+  const canPreviousPage = useMemo(() => currentPage - 1 >= 0, [currentPage]);
 
   const nextPage = () => {
     if (canNextPage) {
-      setCurrentPage(currentPage + 1)
+      setCurrentPage(currentPage + 1);
     }
-  }
+  };
 
   const previousPage = () => {
     if (canPreviousPage) {
-      setCurrentPage(currentPage - 1)
+      setCurrentPage(currentPage - 1);
     }
-  }
+  };
 
   const currentVariants = useMemo(() => {
-    const offset = currentPage * pageSize
-    const limit = Math.min(offset + pageSize, variants.length)
+    const offset = currentPage * pageSize;
+    const limit = Math.min(offset + pageSize, variants.length);
 
-    return variants.slice(offset, limit)
-  }, [currentPage, pageSize, variants])
+    return variants.slice(offset, limit);
+  }, [currentPage, pageSize, variants]);
 
   return (
     <div className="flex gap-1 flex-col">
       <Table>
         <Table.Header>
           <Table.Row>
-            <Table.HeaderCell>Variant</Table.HeaderCell>
+            <Table.HeaderCell>Variante</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -65,31 +74,33 @@ function TablePaginated({variants} : {variants: OutOfTheStockVariantsTableRow[]}
                 className="[&_td:last-child]:w-[1%] [&_td:last-child]:whitespace-nowrap"
               >
                 <Table.Cell>
-                <Grid container justifyContent={'space-between'}>
-                  <Grid item>
-                    <Link to={`../products/${variant.productId}`}>
-                      <Grid container alignItems={'center'} spacing={2}>
-                        {variant.thumbnail && <Grid item>
-                          <Box
-                            sx={{
-                              width: 30,
-                              height: 40
-                            }}
-                            component="img"
-                            alt={`Thumbnail for ${variant.productTitle}`}
-                            src={variant.thumbnail}
-                          />
-                        </Grid>}
-                        <Grid item>
-                          {variant.productTitle} - {variant.variantTitle}
+                  <Grid container justifyContent={"space-between"}>
+                    <Grid item>
+                      <Link to={`../products/${variant.productId}`}>
+                        <Grid container alignItems={"center"} spacing={2}>
+                          {variant.thumbnail && (
+                            <Grid item>
+                              <Box
+                                sx={{
+                                  width: 30,
+                                  height: 40,
+                                }}
+                                component="img"
+                                alt={`Miniatura para ${variant.productTitle}`}
+                                src={variant.thumbnail}
+                              />
+                            </Grid>
+                          )}
+                          <Grid item>
+                            {variant.productTitle} - {variant.variantTitle}
+                          </Grid>
                         </Grid>
-                      </Grid>
-                    </Link>
+                      </Link>
+                    </Grid>
                   </Grid>
-                </Grid>
                 </Table.Cell>
               </Table.Row>
-            )
+            );
           })}
         </Table.Body>
       </Table>
@@ -104,33 +115,28 @@ function TablePaginated({variants} : {variants: OutOfTheStockVariantsTableRow[]}
         nextPage={nextPage}
       />
     </div>
-  )
+  );
 }
 
 const OutOfTheStockVariantsModalContent = () => {
-
   const { data, isError, isLoading, error } = useAdminCustomQuery<
     AdminOutOfTheStockVariantsStatisticsQuery,
     OutOfTheStockVariantsCountResponse
-  >(
-    `/products-analytics/out-of-the-stock-variants`,
-    [],
-    {
-      limit: 0
-    }
-  )
+  >(`/products-analytics/out-of-the-stock-variants`, [], {
+    limit: 0,
+  });
 
   if (isLoading) {
     return (
       <FocusModal.Body>
-        <CircularProgress/>
+        <CircularProgress />
       </FocusModal.Body>
-    )
+    );
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
     return (
       <FocusModal.Body>
         <Alert variant="error">{errorText}</Alert>
@@ -140,38 +146,42 @@ const OutOfTheStockVariantsModalContent = () => {
 
   return (
     <FocusModal.Body>
-      <Grid container direction={'column'} alignContent={'center'} paddingTop={8}>
+      <Grid
+        container
+        direction={"column"}
+        alignContent={"center"}
+        paddingTop={8}
+      >
         <Grid item>
-          <Heading>All out of the stock variants</Heading>
+          <Heading>Todas las variantes fuera de stock</Heading>
         </Grid>
         <Grid item>
-          <Text>
-            You can click on the row to go to the product.
-          </Text>
+          <Text>Puede hacer clic en la fila para ir al producto.</Text>
         </Grid>
         <Grid item paddingTop={5}>
-          <TablePaginated variants={transformToVariantTopTable(data.analytics)}/>
+          <TablePaginated
+            variants={transformToVariantTopTable(data.analytics)}
+          />
         </Grid>
       </Grid>
     </FocusModal.Body>
-  )
-}
+  );
+};
 
 export const OutOfTheStockVariantsModal = () => {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
-    <FocusModal
-      open={open}
-      onOpenChange={setOpen}
-    >
+    <FocusModal open={open} onOpenChange={setOpen}>
       <FocusModal.Trigger asChild>
-        <Button size="small" variant="secondary">See all</Button>
+        <Button size="small" variant="secondary">
+          Ver todo
+        </Button>
       </FocusModal.Trigger>
       <FocusModal.Content>
-        <FocusModal.Header/>
-        <OutOfTheStockVariantsModalContent/>
+        <FocusModal.Header />
+        <OutOfTheStockVariantsModalContent />
       </FocusModal.Content>
     </FocusModal>
-  )
-}
+  );
+};

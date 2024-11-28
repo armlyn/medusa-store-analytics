@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -12,76 +12,95 @@
 
 import { Heading, Alert } from "@medusajs/ui";
 import { CircularProgress, Grid } from "@mui/material";
-import { useAdminCustomQuery } from "medusa-react"
+import { useAdminCustomQuery } from "medusa-react";
 import type { DateRange } from "../utils/types";
 import { PercentageComparison } from "../common/percentage-comparison";
 import { IconComparison } from "../common/icon-comparison";
 
 type AdminCustomersStatisticsQuery = {
-  dateRangeFrom: number
-  dateRangeTo: number,
-  dateRangeFromCompareTo?: number,
-  dateRangeToCompareTo?: number,
-}
+  dateRangeFrom: number;
+  dateRangeTo: number;
+  dateRangeFromCompareTo?: number;
+  dateRangeToCompareTo?: number;
+};
 
 export type CustomersCountResponse = {
   analytics: {
-    dateRangeFrom: number
-    dateRangeTo: number,
-    dateRangeFromCompareTo?: number,
-    dateRangeToCompareTo?: number,
-    current: string,
-    previous: string
-  }
-}
+    dateRangeFrom: number;
+    dateRangeTo: number;
+    dateRangeFromCompareTo?: number;
+    dateRangeToCompareTo?: number;
+    current: string;
+    previous: string;
+  };
+};
 
-export const CustomersNumber = ({dateRange, dateRangeCompareTo, compareEnabled} : {dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled?: boolean}) => {
+export const CustomersNumber = ({
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled?: boolean;
+}) => {
   const { data, isLoading, isError, error } = useAdminCustomQuery<
-  AdminCustomersStatisticsQuery,
-  CustomersCountResponse
-  >(
-    `/customers-analytics/count`,
-    [dateRange, dateRangeCompareTo],
-    {
-      dateRangeFrom: dateRange ? dateRange.from.getTime() : undefined,
-      dateRangeTo: dateRange ? dateRange.to.getTime() : undefined,
-      dateRangeFromCompareTo: dateRangeCompareTo ? dateRangeCompareTo.from.getTime() : undefined,
-      dateRangeToCompareTo: dateRangeCompareTo ? dateRangeCompareTo.to.getTime() : undefined
-    }
-  )
+    AdminCustomersStatisticsQuery,
+    CustomersCountResponse
+  >(`/customers-analytics/count`, [dateRange, dateRangeCompareTo], {
+    dateRangeFrom: dateRange ? dateRange.from.getTime() : undefined,
+    dateRangeTo: dateRange ? dateRange.to.getTime() : undefined,
+    dateRangeFromCompareTo: dateRangeCompareTo
+      ? dateRangeCompareTo.from.getTime()
+      : undefined,
+    dateRangeToCompareTo: dateRangeCompareTo
+      ? dateRangeCompareTo.to.getTime()
+      : undefined,
+  });
 
   if (isLoading) {
-    return <CircularProgress size={12}/>
+    return <CircularProgress size={12} />;
   }
 
   if (isError) {
     const trueError = error as any;
-    const errorText = `Error when loading data. It shouldn't have happened - please raise an issue. For developer: ${trueError?.response?.data?.message}`
-    return <Alert variant="error">{errorText}</Alert>
+    const errorText = `Error al cargar datos. No debería haber ocurrido. Por favor, plantee un problema. Para desarrolladores: ${trueError?.response?.data?.message}`;
+    return <Alert variant="error">{errorText}</Alert>;
   }
 
   if (data.analytics == undefined) {
-    return <Heading level="h3">Cannot get customers</Heading>
+    return <Heading level="h3">No puedo conseguir clientes</Heading>;
   }
   return (
-    <Grid container alignItems={'center'} spacing={2}>
+    <Grid container alignItems={"center"} spacing={2}>
       <Grid item>
-        <Heading level="h1">
-          {data.analytics.current}
-        </Heading>
+        <Heading level="h1">{data.analytics.current}</Heading>
       </Grid>
-      {compareEnabled && dateRangeCompareTo && 
-      <Grid item>
-        <Grid container alignItems={'center'}>
-          <Grid item>
-            <IconComparison current={parseInt(data.analytics.current)} previous={data.analytics.previous ? parseInt(data.analytics.previous) : undefined}/>
+      {compareEnabled && dateRangeCompareTo && (
+        <Grid item>
+          <Grid container alignItems={"center"}>
+            <Grid item>
+              <IconComparison
+                current={parseInt(data.analytics.current)}
+                previous={
+                  data.analytics.previous
+                    ? parseInt(data.analytics.previous)
+                    : undefined
+                }
+              />
+            </Grid>
+            {data.analytics.previous !== undefined && (
+              <Grid item>
+                <PercentageComparison
+                  current={data.analytics.current}
+                  label=""
+                  previous={data.analytics.previous}
+                />
+              </Grid>
+            )}
           </Grid>
-          {data.analytics.previous !== undefined && <Grid item>
-            <PercentageComparison current={data.analytics.current} label="" previous={data.analytics.previous}/>
-          </Grid>}
         </Grid>
-      </Grid>
-      }
+      )}
     </Grid>
   );
-}
+};

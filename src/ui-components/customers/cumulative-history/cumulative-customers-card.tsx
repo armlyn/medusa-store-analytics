@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -16,25 +16,34 @@ import { Grid } from "@mui/material";
 import type { DateRange } from "../../utils/types";
 import { CumulativeCustomersChart } from "./cumulative-customers-chart";
 
-export const CumulativeCustomersCard = ({dateRange, dateRangeCompareTo, compareEnabled} : 
-  {dateRange?: DateRange, dateRangeCompareTo?: DateRange, compareEnabled: boolean}) => {
+export const CumulativeCustomersCard = ({
+  dateRange,
+  dateRangeCompareTo,
+  compareEnabled,
+}: {
+  dateRange?: DateRange;
+  dateRangeCompareTo?: DateRange;
+  compareEnabled: boolean;
+}) => {
   return (
     <Grid container paddingBottom={2} spacing={3}>
       <Grid item xs={12} md={12}>
-          <Grid container spacing={2}>
-            <Grid item>
-              <Users/>
-            </Grid>
-            <Grid item>
-              <Heading level="h2">
-                Clientes acumuladas
-              </Heading>
-            </Grid>
+        <Grid container spacing={2}>
+          <Grid item>
+            <Users />
           </Grid>
+          <Grid item>
+            <Heading level="h2">Clientes acumulados</Heading>
+          </Grid>
+        </Grid>
       </Grid>
       <Grid item xs={12} md={12}>
-        <CumulativeCustomersChart dateRange={dateRange} dateRangeCompareTo={dateRangeCompareTo} compareEnabled={compareEnabled}/>
+        <CumulativeCustomersChart
+          dateRange={dateRange}
+          dateRangeCompareTo={dateRangeCompareTo}
+          compareEnabled={compareEnabled}
+        />
       </Grid>
     </Grid>
-  )
-}
+  );
+};

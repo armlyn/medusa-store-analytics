@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -14,61 +14,55 @@ import { Heading, Text } from "@medusajs/ui";
 import { Divider, Grid } from "@mui/material";
 
 export type DiscountsTopTableRow = {
-  sum: string,
-  discountCode: string
-}
+  sum: string;
+  discountCode: string;
+};
 
-export const DiscountsTopTable = ({tableRows} : {tableRows: DiscountsTopTableRow[]}) => {
+export const DiscountsTopTable = ({
+  tableRows,
+}: {
+  tableRows: DiscountsTopTableRow[];
+}) => {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Divider></Divider>
       </Grid>
       <Grid item xs={12}>
-        <Grid container justifyContent={'space-between'}>
+        <Grid container justifyContent={"space-between"}>
           <Grid item>
-            <Heading level="h3"> 
-              Discount
-            </Heading>
+            <Heading level="h3">Descuento</Heading>
           </Grid>
           <Grid item>
-            <Heading level="h3"> 
-              Count
-            </Heading>
+            <Heading level="h3">Contar</Heading>
           </Grid>
         </Grid>
       </Grid>
-      {tableRows.length > 0 ? tableRows.map(tableRow => (
+      {tableRows.length > 0 ? (
+        tableRows.map((tableRow) => (
+          <Grid item xs={12}>
+            <Grid container justifyContent={"space-between"}>
+              <Grid item>
+                <Text>{tableRow.discountCode}</Text>
+              </Grid>
+              <Grid item>
+                <Text>{tableRow.sum}</Text>
+              </Grid>
+            </Grid>
+          </Grid>
+        ))
+      ) : (
         <Grid item xs={12}>
-          <Grid container justifyContent={'space-between'}>
+          <Grid container justifyContent={"space-between"}>
             <Grid item>
-              <Text>
-                {tableRow.discountCode}
-              </Text>
+              <Text>Ninguno</Text>
             </Grid>
             <Grid item>
-              <Text>
-                {tableRow.sum}
-              </Text>
+              <Text>Ninguno</Text>
             </Grid>
           </Grid>
         </Grid>
-      )) : 
-        <Grid item xs={12}>
-          <Grid container justifyContent={'space-between'}>
-            <Grid item>
-              <Text> 
-                None
-              </Text>
-            </Grid>
-            <Grid item>
-              <Text> 
-                None
-              </Text>
-            </Grid>
-          </Grid>
-        </Grid>
-      }
+      )}
     </Grid>
-  )
-}
+  );
+};
