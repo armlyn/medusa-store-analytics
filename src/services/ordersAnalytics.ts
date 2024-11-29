@@ -11,10 +11,11 @@
  */
 
 import { OrderStatus, TransactionBaseService } from "@medusajs/medusa"
-import { Order, OrderService } from "@medusajs/medusa"
+import { OrderService } from "@medusajs/medusa"
 import { calculateResolution } from "./utils/dateTransformations"
 import { OrdersHistoryResult } from "./utils/types"
 import { In } from "typeorm"
+import { Order } from "../models/order"
 
 export type OrdersCounts = {
   dateRangeFrom?: number
@@ -49,12 +50,16 @@ type OrdersPaymentProviderPopularityResult = {
 export default class OrdersAnalyticsService extends TransactionBaseService {
 
   private readonly orderService: OrderService;
+  private readonly loggedInStoreId: string | null;
 
   constructor(
     container,
   ) {
     super(container)
     this.orderService = container.orderService;
+    this.loggedInStoreId = container.loggedInStoreId;
+
+    console.log("loggedInStoreId: ", this.loggedInStoreId);
   }
 
   async getOrdersHistory(orderStatuses: OrderStatus[], from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<OrdersHistoryResult> {
@@ -75,6 +80,10 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
         .addSelect('COUNT(order.id)', 'orderCount')
         .where(`created_at >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
         .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
   
         const orders = await query
         .groupBy('type, date')
@@ -114,7 +123,7 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId ? this.loggedInStoreId : undefined },
           })
   
           if (lastOrder.length > 0) {
@@ -133,6 +142,10 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
           .addSelect('COUNT(order.id)', 'orderCount')
           .where(`created_at >= :startQueryFrom`, { startQueryFrom })
           .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
   
         const orders = await query
         .groupBy('date')
@@ -174,7 +187,7 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId ? this.loggedInStoreId : undefined }
           })
 
           if (lastOrder.length > 0) {
@@ -186,7 +199,7 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
       }
       const orders = await this.orderService.listAndCount({
         created_at: startQueryFrom ? { gte: startQueryFrom } : undefined,
-        status: In(orderStatusesAsStrings)
+        status: In(orderStatusesAsStrings),
       }, {
         select: [
           "id",
@@ -196,9 +209,16 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
         order: { created_at: "DESC" },
       })
 
+      const storeOrders = orders[0].filter(order => {
+        if (this.loggedInStoreId) {
+          return (order as Order).store_id === this.loggedInStoreId;
+        }
+        return true;
+      })
+
       if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
-        const previousOrders = orders[0].filter(order => order.created_at < from);
-        const currentOrders = orders[0].filter(order => order.created_at >= from);
+        const previousOrders = storeOrders.filter(order => order.created_at < from);
+        const currentOrders = storeOrders.filter(order => order.created_at >= from);
         return {
           dateRangeFrom: from.getTime(),
           dateRangeTo: to.getTime(),
@@ -277,6 +297,10 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
       .addSelect('COUNT(order.id)', 'orderCount')
       .leftJoinAndSelect('order.payments', 'payments')
       .where('order.created_at >= :dateRangeFromCompareTo', { dateRangeFromCompareTo })
+
+      if (this.loggedInStoreId) {
+        query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+      }
       
       const ordersCountWithPayments = await query
       .groupBy('date, type, payments.id')
@@ -323,6 +347,9 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
           skip: 0,
           take: 1,
           order: { created_at: "ASC"},
+          where: {
+            ...(this.loggedInStoreId ? { store_id: this.loggedInStoreId } : {}),
+          },
         })
 
         if (lastOrder.length > 0) {
@@ -342,6 +369,10 @@ export default class OrdersAnalyticsService extends TransactionBaseService {
       .addSelect('COUNT(order.id)', 'orderCount')
       .leftJoinAndSelect('order.payments', 'payments')
       .where('order.created_at >= :startQueryFrom', { startQueryFrom })
+
+      if (this.loggedInStoreId) {
+        query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+      }
 
       const ordersCountWithPayments = await query
       .groupBy('date, payments.id')

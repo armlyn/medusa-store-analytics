@@ -11,10 +11,11 @@
  */
 
 import { OrderStatus, Refund, TransactionBaseService } from "@medusajs/medusa"
-import { Order, OrderService } from "@medusajs/medusa"
+import { OrderService } from "@medusajs/medusa"
 import { DateResolutionType, calculateResolution, getTruncateFunction } from "./utils/dateTransformations"
 import { In } from "typeorm"
 import { getDecimalDigits } from "./utils/currency"
+import { Order } from "../models/order"
 
 type OrdersRegionsPopularity = {
   date: string,
@@ -94,12 +95,14 @@ function groupPerDate(orders: Order[], resolution: DateResolutionType) {
 export default class SalesAnalyticsService extends TransactionBaseService {
 
   private readonly orderService: OrderService;
+  private readonly loggedInStoreId: string | null;
 
   constructor(
     container,
   ) {
     super(container)
     this.orderService = container.orderService;
+    this.loggedInStoreId = container.loggedInStoreId;
   }
 
   async getOrdersSales(orderStatuses: OrderStatus[], currencyCode: string, from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<SalesHistoryResult> {
@@ -115,7 +118,7 @@ export default class SalesAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
 
           if (lastOrder.length > 0) {
@@ -140,11 +143,12 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         order: { created_at: "DESC" },
       })
 
+      const storeOrders = orders.filter(order => (order as Order).store_id === this.loggedInStoreId);
       
       if (startQueryFrom) {
         if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
-          const previousOrders = orders.filter(order => order.created_at < from);
-          const currentOrders = orders.filter(order => order.created_at >= from);
+          const previousOrders = storeOrders.filter(order => order.created_at < from);
+          const currentOrders = storeOrders.filter(order => order.created_at >= from);
           const resolution = calculateResolution(from);
           const groupedCurrentOrders = groupPerDate(currentOrders, resolution);
           const groupedPreviousOrders = groupPerDate(previousOrders, resolution);
@@ -162,7 +166,7 @@ export default class SalesAnalyticsService extends TransactionBaseService {
           }
         }
         const resolution = calculateResolution(startQueryFrom);
-        const currentOrders = orders;
+        const currentOrders = storeOrders;
         const groupedCurrentOrders = groupPerDate(currentOrders, resolution);
         const currentSales: SalesHistory[] = Object.values(groupedCurrentOrders);
     
@@ -210,6 +214,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .where('order.created_at >= :dateRangeFromCompareTo', { dateRangeFromCompareTo })
         .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
 
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
+
         const ordersCountBySalesChannel = await query
         .groupBy('date, type, sales_channel.id')
         .orderBy('date', 'ASC')
@@ -256,7 +264,7 @@ export default class SalesAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
 
           if (lastOrder.length > 0) {
@@ -277,6 +285,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .leftJoinAndSelect('order.sales_channel', 'sales_channel')
         .where('order.created_at >= :startQueryFrom', { startQueryFrom })
         .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
 
         const ordersCountBySalesChannel = await query
         .groupBy('date, sales_channel.id')
@@ -332,6 +344,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .where('order.created_at >= :dateRangeFromCompareTo', { dateRangeFromCompareTo })
         .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
 
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
+
         const ordersCountByRegion = await query
         .groupBy('date, type, region.id')
         .orderBy('date', 'ASC')
@@ -378,7 +394,7 @@ export default class SalesAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
 
           if (lastOrder.length > 0) {
@@ -399,6 +415,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .leftJoinAndSelect('order.region', 'region')
         .where('order.created_at >= :startQueryFrom', { startQueryFrom })
         .andWhere(`status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
 
         const ordersCountByRegion = await query
         .groupBy('date, region.id')
@@ -451,6 +471,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .where(`refund.created_at >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
         .andWhere(`order.currency_code = :currencyCode`, { currencyCode })
 
+      if (this.loggedInStoreId) {
+        query.andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
+      }
+
         const refunds: {
           type: string
           sum: string
@@ -498,6 +522,10 @@ export default class SalesAnalyticsService extends TransactionBaseService {
         .innerJoin('refund.order', 'order')
         .where(`refund.created_at >= :startQueryFrom`, { startQueryFrom })
         .andWhere(`order.currency_code = :currencyCode`, { currencyCode })
+
+      if (this.loggedInStoreId) {
+        query.andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
+      }
 
       const refunds = await query.getRawOne();
 

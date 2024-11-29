@@ -78,7 +78,7 @@ const AnalyticsPage = () => {
       <Grid item xs={12} md={12}>
         <Tabs defaultValue='overview'>
           <Tabs.List style={ { justifyContent: 'center' } }>
-            <Tabs.Trigger value='overview'>Descripción general</Tabs.Trigger>
+            <Tabs.Trigger value='overview'>General</Tabs.Trigger>
             <Tabs.Trigger value='sales'>Ventas</Tabs.Trigger>
             <Tabs.Trigger value='orders'>Pedidos</Tabs.Trigger>
             <Tabs.Trigger value='customers'>Clientes</Tabs.Trigger>

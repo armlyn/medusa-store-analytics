@@ -11,8 +11,9 @@
  */
 
 import { OrderStatus, TransactionBaseService } from "@medusajs/medusa"
-import { Order } from "@medusajs/medusa"
+
 import { In } from "typeorm"
+import { Order } from "../models/order"
 
 type DiscountsCountPopularity = {
   sum: string,
@@ -32,12 +33,14 @@ type DiscountsCountPopularityResult = {
 export default class MarketingAnalyticsService extends TransactionBaseService {
 
   private readonly TOP_LIMIT;
+  private readonly loggedInStoreId: string | null;
 
   constructor(
     container,
   ) {
     super(container)
     this.TOP_LIMIT = 5;
+    this.loggedInStoreId = container.loggedInStoreId;
   }
 
   async getTopDiscountsByCount(orderStatuses: OrderStatus[], from?: Date, to?: Date) : Promise<DiscountsCountPopularityResult> {
@@ -53,6 +56,10 @@ export default class MarketingAnalyticsService extends TransactionBaseService {
         .addSelect("COUNT(discount.id)", "sum")
         .where('order.created_at >= :from', { from })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
 
         const topDiscounts = await query
         .groupBy('discount.code, discount.id')
@@ -86,7 +93,7 @@ export default class MarketingAnalyticsService extends TransactionBaseService {
           skip: 0,
           take: 1,
           order: { created_at: "ASC"},
-          where: { status: In(orderStatusesAsStrings) }
+          where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
         })
 
         if (lastOrder.length > 0) {
@@ -103,7 +110,8 @@ export default class MarketingAnalyticsService extends TransactionBaseService {
         .addSelect("discount.id", "discount_id")
         .addSelect("COUNT(discount.id)", "sum")
         .where('order.created_at >= :startQueryFrom', { startQueryFrom })
-        .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+        .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings })
+        .andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
 
         const topDiscounts = await query
         .groupBy('discount.code, discount.id')

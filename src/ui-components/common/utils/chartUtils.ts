@@ -76,10 +76,10 @@ export const getChartTooltipDate = (date: Date, resolutionType: ChartResolutionT
 }
 
 export const getLegendName = (current: boolean): string => {
-  return current ? `Current` : `Preceding`;
+  return current ? `Actual` : `Anterior`;
 }
 
 const getShortMonthName = (date: Date) => {
-  let days = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let days = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   return days[date.getMonth()];
 }

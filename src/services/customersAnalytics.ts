@@ -10,10 +10,11 @@
  * limitations under the License.
  */
 
-import { CustomerService, Order, OrderService, OrderStatus, TransactionBaseService } from "@medusajs/medusa"
+import { CustomerService, OrderService, OrderStatus, TransactionBaseService } from "@medusajs/medusa"
 import { Customer } from "@medusajs/medusa"
 import { calculateResolution } from "./utils/dateTransformations"
 import { In } from "typeorm"
+import { Order } from "../models/order"
 
 type CustomersHistory = {
   customerCount: string,
@@ -66,11 +67,13 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
 
   private readonly customerService: CustomerService;
   private readonly orderService: OrderService;
+  private readonly loggedInStoreId: string | null;
 
   constructor(container) {
     super(container)
     this.customerService = container.customerService;
     this.orderService = container.orderService;
+    this.loggedInStoreId = container.loggedInStoreId;
   }
 
   async getHistory(from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<CustomersHistoryResult> {
@@ -87,7 +90,9 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         `)
         .setParameters({ from, dateRangeFromCompareTo })
         .addSelect('COUNT(customer.id)', 'customerCount')
-        .where(`created_at >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
+        .innerJoin('customer.orders', 'order')
+        .where(`customer.created_at >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
+        .andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId })
         .groupBy('type, date')
         .orderBy('date, type',  'ASC')
         .getRawMany();
@@ -121,14 +126,16 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         startQueryFrom = from;
       } else {
         // All time
-        const lastCustomer = await this.activeManager_.getRepository(Customer).find({
-          skip: 0,
-          take: 1,
-          order: { created_at: "ASC"},
-        })
+        const lastCustomer = await this.activeManager_.getRepository(Customer)
+          .createQueryBuilder('customer')
+          .innerJoin('customer.orders', 'order') // Asumiendo que 'orders' es la relación en la entidad Customer
+          .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+          .orderBy('customer.created_at', 'ASC')
+          .take(1)
+          .getOne();
 
-        if (lastCustomer.length > 0) {
-          startQueryFrom = lastCustomer[0].created_at;
+        if (lastCustomer) {
+          startQueryFrom = lastCustomer.created_at;
         }
       }
     } else {
@@ -141,7 +148,9 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
       .createQueryBuilder('customer')
       .select(`date_trunc('${resolution}', customer.created_at)`, 'date')
       .addSelect('COUNT(customer.id)', 'customerCount')
-      .where(`created_at >= :startQueryFrom`, { startQueryFrom })
+      .innerJoin('customer.orders', 'order') 
+      .where(`customer.created_at >= :startQueryFrom`, { startQueryFrom })
+      .andWhere('order.store_id = :storeId', { storeId: this.loggedInStoreId })
       .groupBy('date')
       .orderBy('date', 'ASC')
       .getRawMany();
@@ -173,29 +182,34 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         startQueryFrom = from;
       } else {
         // All time
-        const lastCustomer = await this.activeManager_.getRepository(Customer).find({
-          skip: 0,
-          take: 1,
-          order: { created_at: "ASC"}
-        })
+        const lastCustomer = await this.activeManager_.getRepository(Customer)
+          .createQueryBuilder('customer')
+          .innerJoin('customer.orders', 'order') // Asumiendo que 'orders' es la relación en la entidad Customer
+          .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+          .orderBy('customer.created_at', 'ASC')
+          .take(1)
+          .getOne();
 
-        if (lastCustomer.length > 0) {
-          startQueryFrom = lastCustomer[0].created_at;
+        if (lastCustomer) {
+          startQueryFrom = lastCustomer.created_at;
         }
       }
     } else {
         startQueryFrom = dateRangeFromCompareTo;
     }
-    const customers = await this.customerService.listAndCount({
-      created_at: startQueryFrom ? { gte: startQueryFrom } : undefined,
-    }, {
-      select: [
-        "id",
-        "created_at",
-        "updated_at"
-      ],
-      order: { created_at: "DESC" },
-    })
+
+    const customers = await this.activeManager_.getRepository(Customer)
+      .createQueryBuilder('customer')
+      .innerJoin('customer.orders', 'order') // Asumiendo que 'orders' es la relación en la entidad Customer
+      .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+      .andWhere(startQueryFrom ? 'customer.created_at >= :startQueryFrom' : '1=1', { startQueryFrom })
+      .select([
+        "customer.id",
+        "customer.created_at",
+        "customer.updated_at",
+      ])
+      .orderBy('customer.created_at', 'DESC')
+      .getManyAndCount();
 
     if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
       const previousCustomers = customers[0].filter(customer => customer.created_at < from);
@@ -254,7 +268,7 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId },
           })
 
           if (lastOrder.length > 0) {
@@ -264,18 +278,21 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
       } else {
           startQueryFrom = dateRangeFromCompareTo;
       }
-      const orders: Order[] = await this.orderService.list({
-        created_at: startQueryFrom ? { gte: startQueryFrom } : undefined,
-        status: In(orderStatusesAsStrings)
-      }, {
-        select: [
-          "id",
-          "created_at",
-          "updated_at",
-          "customer_id",
-        ],
-        order: { created_at: "DESC" },
-      })
+
+      const orders = await this.activeManager_.getRepository(Order)
+        .createQueryBuilder('order')
+        .innerJoin('order.customer', 'customer') 
+        .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+        .andWhere(startQueryFrom ? 'order.created_at >= :startQueryFrom' : '1=1', { startQueryFrom })
+        .andWhere('order.status IN (:...orderStatusesAsStrings)', { orderStatusesAsStrings })
+        .select([
+          "order.id",
+          "order.created_at",
+          "order.updated_at",
+          "order.customer_id",
+        ])
+        .orderBy('order.created_at', 'DESC')
+        .getMany();
 
       if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
         const previousOrders = orders.filter(order => order.created_at < from);
@@ -398,7 +415,9 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         .addSelect(
           `SUM(COUNT(*)) OVER (ORDER BY date_trunc('${resolution}', customer.created_at) ASC) AS cumulative_count`
         )
-        .where(`date_trunc('${resolution}', customer.created_at) >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
+        .innerJoin('customer.orders', 'order')
+        .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+        .andWhere(`date_trunc('${resolution}', customer.created_at) >= :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
         .setParameters({ dateRangeFromCompareTo: dateRangeFromCompareTo })
         .groupBy('date')
         .orderBy('date', 'ASC')
@@ -408,7 +427,9 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         const beforeCustomers = await this.activeManager_.getRepository(Customer)
           .createQueryBuilder('customer')
           .select(`COUNT(*) AS cumulative_count`)
-          .where(`customer.created_at < :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
+          .innerJoin('customer.orders', 'order')
+          .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+          .andWhere(`customer.created_at < :dateRangeFromCompareTo`, { dateRangeFromCompareTo })
           .getRawOne(); 
 
         // Start from 0 as customer count will be added from beforeCustomers, so first entry will include past count
@@ -453,14 +474,16 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         startQueryFrom = from;
       } else {
         // All time
-        const lastCustomer = await this.activeManager_.getRepository(Customer).find({
-          skip: 0,
-          take: 1,
-          order: { created_at: "ASC"},
-        })
+        const lastCustomer = await this.activeManager_.getRepository(Customer)
+          .createQueryBuilder('customer')
+          .innerJoin('customer.orders', 'order') // Asumiendo que 'orders' es la relación en la entidad Customer
+          .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+          .orderBy('customer.created_at', 'ASC')
+          .take(1)
+          .getOne();
 
-        if (lastCustomer.length > 0) {
-          startQueryFrom = lastCustomer[0].created_at;
+        if (lastCustomer) {
+          startQueryFrom = lastCustomer.created_at;
         }
       }
     } else {
@@ -475,6 +498,8 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
         .addSelect(
           `SUM(COUNT(*)) OVER (ORDER BY date_trunc('${resolution}', customer.created_at) ASC) AS cumulative_count`
         )
+        .innerJoin('customer.orders', 'order')
+        .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
         .setParameters({ startQueryFrom: startQueryFrom })
         .groupBy('date')
         .orderBy('date', 'ASC')
@@ -526,7 +551,7 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
 
           if (lastOrder.length > 0) {
@@ -536,18 +561,21 @@ export default class CustomersAnalyticsService extends TransactionBaseService {
       } else {
           startQueryFrom = dateRangeFromCompareTo;
       }
-      const orders: Order[] = await this.orderService.list({
-        created_at: startQueryFrom ? { gte: startQueryFrom } : undefined,
-        status: In(orderStatusesAsStrings)
-      }, {
-        select: [
-          "id",
-          "created_at",
-          "updated_at",
-          "customer_id",
-        ],
-        order: { created_at: "DESC" },
-      })
+
+      const orders = await this.activeManager_.getRepository(Order)
+        .createQueryBuilder('order')
+        .innerJoin('order.customer', 'customer')
+        .where('order.store_id = :storeId', { storeId: this.loggedInStoreId })
+        .andWhere(startQueryFrom ? 'order.created_at >= :startQueryFrom' : '1=1', { startQueryFrom })
+        .andWhere('order.status IN (:...orderStatusesAsStrings)', { orderStatusesAsStrings })
+        .select([
+          "order.id",
+          "order.created_at",
+          "order.updated_at",
+          "order.customer_id",
+        ])
+        .orderBy('order.created_at', 'DESC')
+        .getMany();
 
       if (dateRangeFromCompareTo && from && to && dateRangeToCompareTo) {
         const previousOrders = orders.filter(order => order.created_at < from);

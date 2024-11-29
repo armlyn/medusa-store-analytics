@@ -30,6 +30,7 @@ export default class ReportsAnalyticsService extends TransactionBaseService {
   private readonly salesAnalyticsService: SalesAnalyticsService;
   private readonly productsAnalyticsService: ProductsAnalyticsService;
   private readonly regionService: RegionService;
+  private readonly loggedInStoreId: string | null;
 
   constructor(
     container,
@@ -40,6 +41,7 @@ export default class ReportsAnalyticsService extends TransactionBaseService {
     this.customersAnalyticsService = container.customersAnalyticsService;
     this.productsAnalyticsService = container.productsAnalyticsService;
     this.regionService = container.regionService;
+    this.loggedInStoreId = container.loggedInStoreId;
   }
 
   async generateReport(orderStatuses: OrderStatus[], from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<Buffer> | undefined {

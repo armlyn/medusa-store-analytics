@@ -11,8 +11,9 @@
  */
 
 import { LineItem, OrderStatus, ProductVariant, Return, ReturnItem, TransactionBaseService } from "@medusajs/medusa"
-import { Order } from "@medusajs/medusa"
+
 import { In } from "typeorm"
+import { Order } from "../models/order"
 
 type VariantsCountPopularity = {
   sum: string,
@@ -51,12 +52,14 @@ type OutOfTheStockVariantsCountResult = {
 export default class ProductsAnalyticsService extends TransactionBaseService {
 
   private readonly TOP_LIMIT;
+  private readonly loggedInStoreId: string | null;
 
   constructor(
     container,
   ) {
     super(container)
     this.TOP_LIMIT = 5;
+    this.loggedInStoreId = container.loggedInStoreId;
   }
 
   async getTopVariantsByCount(orderStatuses: OrderStatus[], from?: Date, to?: Date, dateRangeFromCompareTo?: Date, dateRangeToCompareTo?: Date) : Promise<VariantsCountPopularityResult> {
@@ -74,6 +77,10 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
         .innerJoinAndSelect('lineitem.variant', 'variant')
         .where('order.created_at >= :from', { from })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
 
         const variantsSumInLinteItemsInOrders = await query
           .groupBy('lineitem.variant_id, variant.id, variant.product_id, lineitem.title, lineitem.thumbnail')
@@ -111,7 +118,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
 
           if (lastOrder.length > 0) {
@@ -134,6 +141,10 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
         .innerJoinAndSelect('lineitem.variant', 'variant')
         .where('order.created_at >= :startQueryFrom', { startQueryFrom })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings });
+
+        if (this.loggedInStoreId) {
+          query.andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId });
+        }
 
         const variantsSumInLinteItemsInOrders = await query
           .groupBy('lineitem.variant_id, variant.id, variant.product_id, lineitem.title, lineitem.thumbnail')
@@ -238,6 +249,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
           skip: 0,
           take: 1,
           order: { created_at: "ASC"},
+          where: { store_id: this.loggedInStoreId }
         })
 
         if (lastOrder.length > 0) {
@@ -324,6 +336,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
         .innerJoin('lineitem.order', 'order')
         .where('order.created_at >= :from', { from })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings })
+        .andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId })
         .getRawOne()
 
         const productsSoldPreviously = await this.activeManager_
@@ -334,6 +347,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
         .where('order.created_at >= :dateRangeFromCompareTo', { dateRangeFromCompareTo })
         .andWhere('order.created_at < :from', { from })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings })
+        .andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId })
         .getRawOne()
 
         return {
@@ -356,7 +370,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
             skip: 0,
             take: 1,
             order: { created_at: "ASC"},
-            where: { status: In(orderStatusesAsStrings) }
+            where: { status: In(orderStatusesAsStrings), store_id: this.loggedInStoreId }
           })
   
           if (lastOrder.length > 0) {
@@ -375,6 +389,7 @@ export default class ProductsAnalyticsService extends TransactionBaseService {
         .innerJoin('lineitem.order', 'order')
         .where('order.created_at >= :startQueryFrom', { startQueryFrom })
         .andWhere(`order.status IN(:...orderStatusesAsStrings)`, { orderStatusesAsStrings })
+        .andWhere(`order.store_id = :storeId`, { storeId: this.loggedInStoreId })
         .getRawOne()
 
         return {
