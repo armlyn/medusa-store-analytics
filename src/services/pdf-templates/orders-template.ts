@@ -25,7 +25,7 @@ export default class PdfOrdersTemplate {
 
   static generateTable(doc, ordersHistoryResult: OrdersHistoryResult): void {
     doc.font("Helvetica-Bold");
-    this.generateTableRow(doc, "Fecha", "Conteo de pedidos");
+    this.generateTableRow(doc, "Fecha", "Cantidad");
     moveDown(doc);
     generateHr(doc);
     moveDown(doc);

@@ -35,7 +35,7 @@ export function generateReportHeader(
 ): void {
   doc.fillColor("#444444").fontSize(20);
 
-  doc.text("Informe de análisis de la tienda", { align: "center" });
+  doc.text("Informe de Análisis de la Tienda", { align: "center" });
 
   doc.fontSize(16).moveDown();
 
@@ -44,8 +44,23 @@ export function generateReportHeader(
   if (from) {
     doc
       .text(
-        `${from.toDateString()} - ${
-          to ? to.toDateString() : new Date(Date.now()).toDateString()
+        `${new Intl.DateTimeFormat('es-ES', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }).format(from)} - ${
+        to ? new Intl.DateTimeFormat('es-ES', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }).format(to) : new Intl.DateTimeFormat('es-ES', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }).format(new Date(Date.now()))
         }`,
         { align: "center" }
       )

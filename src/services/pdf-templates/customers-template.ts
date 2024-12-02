@@ -28,7 +28,7 @@ export default class PdfCustomersTemplate {
     customersHistoryResult: CustomersHistoryResult
   ): void {
     doc.font("Helvetica-Bold");
-    this.generateTableRow(doc, "Fecha", "Conteo de nuevos clientes");
+    this.generateTableRow(doc, "Fecha", "Cantidad");
     moveDown(doc);
     generateHr(doc);
     moveDown(doc);
