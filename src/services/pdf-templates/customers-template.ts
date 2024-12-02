@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -15,31 +15,25 @@ import { moveDown } from "./common";
 import { generateHr } from "./hr";
 
 export default class PdfCustomersTemplate {
-  private static generateTableRow(
-    doc,
-    date,
-    customers
-  ) {
+  private static generateTableRow(doc, date, customers) {
     const startY = doc.y;
     doc
       .fontSize(10)
       .text(date, 70, startY, { align: "left" })
-      .text(customers, 320, startY, { width: 90, align: "right" })
+      .text(customers, 320, startY, { width: 90, align: "right" });
   }
 
-  static generateTable(doc, customersHistoryResult: CustomersHistoryResult) : void {
-  
+  static generateTable(
+    doc,
+    customersHistoryResult: CustomersHistoryResult
+  ): void {
     doc.font("Helvetica-Bold");
-    this.generateTableRow(
-      doc,
-      "Date",
-      "New customers count",
-    );
-    moveDown(doc)
+    this.generateTableRow(doc, "Fecha", "Cantidad");
+    moveDown(doc);
     generateHr(doc);
-    moveDown(doc)
+    moveDown(doc);
     doc.font("Helvetica");
-  
+
     let totalCurrent = 0;
     for (const currentCustomersHistoryResult of customersHistoryResult.current) {
       totalCurrent += Number(currentCustomersHistoryResult.customerCount);
@@ -48,30 +42,23 @@ export default class PdfCustomersTemplate {
         new Date(currentCustomersHistoryResult.date).toLocaleDateString(),
         currentCustomersHistoryResult.customerCount
       );
-  
-      moveDown(doc)
+
+      moveDown(doc);
       generateHr(doc);
-      moveDown(doc)
+      moveDown(doc);
     }
-  
-    this.generateTableRow(
-      doc,
-      "Total",
-      totalCurrent
-    );
-    moveDown(doc)
+
+    this.generateTableRow(doc, "Total", totalCurrent);
+    moveDown(doc);
   }
-  
-  static generateHeader(doc) : void {
-    doc
-      .fontSize(18)
-    moveDown(doc)
-  
-    doc
-      .text('New customers', 70, doc.y, { align: "left"})
-    
-    doc
-      .fontSize(12)
-    moveDown(doc)
+
+  static generateHeader(doc): void {
+    doc.fontSize(18);
+    moveDown(doc);
+
+    doc.text("Nuevos clientes", 70, doc.y, { align: "left" });
+
+    doc.fontSize(12);
+    moveDown(doc);
   }
 }

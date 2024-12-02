@@ -1,5 +1,5 @@
 /*
- * 
+ *
  *
  * MIT License
  *
@@ -15,31 +15,22 @@ import { OrdersHistoryResult } from "../utils/types";
 import { moveDown } from "./common";
 
 export default class PdfOrdersTemplate {
-  private static generateTableRow(
-    doc,
-    date,
-    orders
-  ) {
+  private static generateTableRow(doc, date, orders) {
     const startY = doc.y;
     doc
       .fontSize(10)
       .text(date, 70, startY, { align: "left" })
-      .text(orders, 320, startY, { width: 90, align: "right" })
+      .text(orders, 320, startY, { width: 90, align: "right" });
   }
 
-  static generateTable(doc, ordersHistoryResult: OrdersHistoryResult) : void {
-  
+  static generateTable(doc, ordersHistoryResult: OrdersHistoryResult): void {
     doc.font("Helvetica-Bold");
-    this.generateTableRow(
-      doc,
-      "Date",
-      "Orders count",
-    );
-    moveDown(doc)
+    this.generateTableRow(doc, "Fecha", "Cantidad");
+    moveDown(doc);
     generateHr(doc);
-    moveDown(doc)
+    moveDown(doc);
     doc.font("Helvetica");
-  
+
     let totalCurrent = 0;
     for (const currentOrdersHistoryResult of ordersHistoryResult.current) {
       totalCurrent += Number(currentOrdersHistoryResult.orderCount);
@@ -48,30 +39,23 @@ export default class PdfOrdersTemplate {
         new Date(currentOrdersHistoryResult.date).toLocaleDateString(),
         currentOrdersHistoryResult.orderCount
       );
-  
-      moveDown(doc)
-      generateHr(doc);
-      moveDown(doc)
-    }
-  
-    this.generateTableRow(
-      doc,
-      "Total",
-      totalCurrent
-    );
-    moveDown(doc)
-  }
-  
-  static generateHeader(doc) : void {
-    doc
-      .fontSize(18)
-    moveDown(doc)
 
-    doc
-      .text('Orders', 70, doc.y, { align: "left"})
-    
-    doc
-      .fontSize(12)
-    moveDown(doc)
+      moveDown(doc);
+      generateHr(doc);
+      moveDown(doc);
+    }
+
+    this.generateTableRow(doc, "Total", totalCurrent);
+    moveDown(doc);
+  }
+
+  static generateHeader(doc): void {
+    doc.fontSize(18);
+    moveDown(doc);
+
+    doc.text("Pedidos", 70, doc.y, { align: "left" });
+
+    doc.fontSize(12);
+    moveDown(doc);
   }
 }
